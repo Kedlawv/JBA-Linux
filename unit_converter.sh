@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+file_name="definitions.txt"
 echo "Welcome to the Simple converter!"
 
 print_menu() {
@@ -24,10 +25,10 @@ process_user_choice() {
 			echo "Not implemented!"
 			;;
 		2)
-			echo "Not implemented!"
+			add_definition
 			;;
 		3)
-			echo "Not implemented!"
+			remove_definition
 			;;
 		*) 
 			echo "Invalid option!"
@@ -35,26 +36,70 @@ process_user_choice() {
 	esac
 }
 
-definition(){
-	echo "Enter a definition:"
-	read -a user_input
-
-	arr_length="${#user_input[@]}"
-	definition="${user_input[0]}"
-	constant="${user_input[1]}"
-
-	regex='^[a-zA-Z]+_to_[a-zA-Z]+$'
-
-	if [ "$arr_length" -ne 2 ]; then
-		echo "The definition is incorrect!"
-		exit 1
-	elif ! [[ $definition =~ $regex ]]; then
-		echo "The definition is incorrect!"
-		exit 1
-	elif ! [[ $constant =~ ^-?[0-9]+$ || $constant =~ ^-?[0-9]+[.][0-9]+$ ]]; then
-		echo "The definition is incorrect!"
-		exit 1
+remove_definition(){
+	if [ ! -e "$file_name" ]; then
+        echo "Please add a definition first!"
+        return
+    fi
+	
+	line_count=$(wc -l < "$file_name")
+	if [ "$line_count" -eq 0 ]; then
+		echo "Please add a definition first!"
+		return
 	fi
+	
+	echo "Type the line number to delete or '0' to return"
+	read_lines_with_numbers
+	
+	while [ true ]; do
+		read line_number
+		if [ -z "$line_number" ] || [ "$line_count" -lt "$line_number" ] || [ "$line_number" -lt 0 ]; then 
+			echo "Enter a valid line number!"
+			continue
+		elif [ "$line_number" -eq 0 ]; then
+			return
+		else 
+			sed -i "${line_number}d" "$file_name"
+			break
+		fi
+	done
+}
+
+read_lines_with_numbers(){
+	line_number=1
+
+	while read -r line; do
+		echo "$line_number. $line"
+		((line_number++))
+	done < "$file_name"
+}
+
+add_definition(){
+	
+	while [ true ]; do
+		echo "Enter a definition:"
+		read -a user_input
+
+		arr_length="${#user_input[@]}"
+		definition="${user_input[0]}"
+		constant="${user_input[1]}"
+
+		regex='^[a-zA-Z]+_to_[a-zA-Z]+$'
+
+		if [ "$arr_length" -ne 2 ]; then
+			echo "The definition is incorrect!"
+			continue
+		elif ! [[ $definition =~ $regex ]]; then
+			echo "The definition is incorrect!"
+			continue
+		elif ! [[ $constant =~ ^-?[0-9]+$ || $constant =~ ^-?[0-9]+[.][0-9]+$ ]]; then
+			echo "The definition is incorrect!"
+			continue
+		fi
+		
+		echo "${user_input[0]} ${user_input[1]}" >> "$file_name"
+		break
+	done
 }
 
 convert(){
