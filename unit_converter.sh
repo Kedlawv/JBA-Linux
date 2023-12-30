@@ -22,7 +22,7 @@ process_user_choice() {
 			exit 0
 			;;
 		1)
-			echo "Not implemented!"
+			convert
 			;;
 		2)
 			add_definition
@@ -36,24 +36,39 @@ process_user_choice() {
 	esac
 }
 
-remove_definition(){
+file_validation(){
 	if [ ! -e "$file_name" ]; then
-        echo "Please add a definition first!"
-        return
-    fi
-	
+			echo "Please add a definition first!"
+			return 1
+		fi
+		
+		line_count=$(wc -l < "$file_name")
+		if [ "$line_count" -eq 0 ]; then
+			echo "Please add a definition first!"
+			return 1
+		fi
+}
+
+is_valid_line_number(){
+	local line_number="$1"
 	line_count=$(wc -l < "$file_name")
-	if [ "$line_count" -eq 0 ]; then
-		echo "Please add a definition first!"
+	if [ -z "$line_number" ] || ! [[ "$line_number" =~ ^[0-9]+$ ]] || [ "$line_count" -lt "$line_number" ] || [ "$line_number" -lt 0 ]; then 
+		return 1
+	fi
+}
+
+remove_definition(){
+	file_validation
+	if [ $? -eq 1 ]; then
 		return
 	fi
 	
 	echo "Type the line number to delete or '0' to return"
-	read_lines_with_numbers
+	read_file_lines_with_numbers
 	
 	while [ true ]; do
 		read line_number
-		if [ -z "$line_number" ] || [ "$line_count" -lt "$line_number" ] || [ "$line_number" -lt 0 ]; then 
+		if ! is_valid_line_number "$line_number"; then 
 			echo "Enter a valid line number!"
 			continue
 		elif [ "$line_number" -eq 0 ]; then
@@ -65,7 +80,7 @@ remove_definition(){
 	done
 }
 
-read_lines_with_numbers(){
+read_file_lines_with_numbers(){
 	line_number=1
 
 	while read -r line; do
@@ -103,18 +118,44 @@ add_definition(){
 }
 
 convert(){
+	file_validation
+	
+	if [ $? -eq 1 ]; then
+		return
+	fi
+	
+	echo "Type the line number to convert units or '0' to return"
+	read_file_lines_with_numbers
+	
+	line_number=-1
+	constant=-1
+	while [ true ]; do
+		read line_number
+		if ! is_valid_line_number "$line_number"; then 
+			echo "Enter a valid line number!"
+			continue
+		elif [ "$line_number" -eq 0 ]; then
+			return
+		else
+			line=$(sed "${line_number}!d" "$file_name")
+			read -a def_array <<< "$line"
+			constant="${def_array[1]}"
+			break
+		fi
+	done
+
 	echo "Enter a value to convert:"
 
-	condition=true
-
-	while [ "$condition" == true ]; do
+	value_to_convert="init"
+	while [ true ]; do
 		
 		read value_to_convert
 		
 		if ! [[ $value_to_convert =~ ^-?[0-9]+$ || $value_to_convert =~ ^-?[0-9]+[.][0-9]+$ ]]; then
 			echo "Enter a float or integer value!"
+			continue
 		else
-			condition=false
+			break
 		fi
 	done
 	
