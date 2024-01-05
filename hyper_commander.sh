@@ -23,10 +23,10 @@ process_user_choice() {
 			exit 0
 			;;
 		1)
-			echo "Not implemented!"
+			echo $(uname)
 			;;
 		2)
-			echo "Not implemented!"
+			echo $(whoami)
 			;;
 		3)
 			echo "Not implemented!"
