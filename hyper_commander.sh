@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-print_menu() {
+print_main_menu() {
     echo "------------------------------"
     echo "| Hyper Commander            |"
     echo "| 0: Exit                    |"
@@ -12,7 +12,8 @@ print_menu() {
 	echo "------------------------------"
 }
 
-process_user_choice() {
+
+process_user_choice_main() {
 
 	read user_choice
 	
@@ -23,13 +24,13 @@ process_user_choice() {
 			exit 0
 			;;
 		1)
-			echo $(uname)
+			echo "$(uname) $(uname -n)"
 			;;
 		2)
 			echo $(whoami)
 			;;
 		3)
-			echo "Not implemented!"
+			file_and_dir_operations
 			;;
 		4)
 			echo "Not implemented!"
@@ -40,13 +41,85 @@ process_user_choice() {
 	esac
 }
 
+
+print_files() {
+	echo "The list of files and directories:"
+	files_array=("$@")
+	
+	for item in "${files_array[@]}"; do
+		if [[ -f "$item" ]]; then
+			echo "F $item"
+		elif [[ -d "$item" ]]; then
+			echo "D $item"
+		fi
+	done
+}
+
+
+print_files_menu() {
+	echo "---------------------------------------------------"
+	echo "| 0 Main menu | 'up' To parent | 'name' To select |"
+	echo "---------------------------------------------------"
+}
+
+
+process_user_choice_file() {
+	read user_choice
+	
+	files_array=("$@")
+	
+	name_found=false
+	for element in "${files_array[@]}"; do
+		if [ "$user_choice" == "$element" ]; then
+			name_found=true
+			break
+		fi
+	done
+	
+	if [ "$user_choice" = "0" ]; then
+		return 1
+	elif [ "$user_choice" = "up" ]; then
+		echo "Not implemented!"
+	elif [ "$name_found" = "true" ]; then
+		echo "Not implemented!"
+	else
+		echo "Invalid input!"
+	fi
+}
+
+
+file_and_dir_operations() {
+	while [ true ]; do
+		files_array=($(read_files))
+		print_files "${files_array[@]}"
+		print_files_menu
+		process_user_choice_file "${files_array[@]}"
+		
+		if [ $? -eq 1 ]; then
+            break  
+        fi
+		
+	done
+}
+
+
+read_files() {
+	local items=()
+    
+    for item in $(ls); do
+        items+=("$item")
+    done
+    
+    # Return the array, actual 'return' returns only exit status
+    echo "${items[@]}"
+}
+
+
 echo "Hello $USER!"
 
 while [ true ]; do
-	
-	
-	print_menu
-	process_user_choice
+	print_main_menu
+	process_user_choice_main
 done
 
 
