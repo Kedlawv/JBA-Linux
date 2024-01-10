@@ -79,8 +79,10 @@ process_user_choice_file() {
 	if [ "$user_choice" = "0" ]; then
 		return 1
 	elif [ "$user_choice" = "up" ]; then
-		echo "Not implemented!"
-	elif [ "$name_found" = "true" ]; then
+		cd ..
+	elif [ "$name_found" = "true" ] && [[ -d "$user_choice" ]]; then
+		cd "$user_choice"
+	elif [ "$name_found" = "true" ] && [[ -f "$user_choice" ]]; then
 		echo "Not implemented!"
 	else
 		echo "Invalid input!"
