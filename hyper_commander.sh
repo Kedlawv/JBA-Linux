@@ -56,14 +56,20 @@ print_files() {
 }
 
 
-print_files_menu() {
+print_files_dir_menu() {
 	echo "---------------------------------------------------"
 	echo "| 0 Main menu | 'up' To parent | 'name' To select |"
 	echo "---------------------------------------------------"
 }
 
+print_file_menu() {
+	echo "---------------------------------------------------------------------"
+	echo "| 0 Back | 1 Delete | 2 Rename | 3 Make writable | 4 Make read-only |"
+	echo "---------------------------------------------------------------------"
+}
 
-process_user_choice_file() {
+
+process_user_choice_file_dir() {
 	read user_choice
 	
 	files_array=("$@")
@@ -83,19 +89,72 @@ process_user_choice_file() {
 	elif [ "$name_found" = "true" ] && [[ -d "$user_choice" ]]; then
 		cd "$user_choice"
 	elif [ "$name_found" = "true" ] && [[ -f "$user_choice" ]]; then
-		echo "Not implemented!"
+		file_operations $user_choice
 	else
 		echo "Invalid input!"
 	fi
 }
+
+file_operations() {
+	
+	while [ true ]; do
+		print_file_menu
+		process_user_choice_file $1
+		
+		if [ $? -eq 1 ]; then
+            break  
+        fi
+		
+	done
+}
+
+process_user_choice_file() {
+	file_name=$1
+	
+	read user_choice
+	
+	case $user_choice in
+	
+		0)	
+			return 1
+			;;
+		1)
+			rm $file_name
+			echo "$file_name has been deleted."
+			return 1
+			;;
+		2)
+			echo "Enter the new file name:"
+			read new_file_name
+			mv $file_name $new_file_name
+			echo "$file_name has been renamed as $new_file_name"
+			return 1
+			;;
+		3)
+			chmod 666 $file_name
+			echo "Permissions have been updated."
+			ls -l $file_name
+			return 1
+			;;
+		4)
+			chmod 664 $file_name
+			echo "Permissions have been updated."
+			ls -l $file_name
+			return 1
+			;;
+		*) 
+			;;
+	esac
+}
+
 
 
 file_and_dir_operations() {
 	while [ true ]; do
 		files_array=($(read_files))
 		print_files "${files_array[@]}"
-		print_files_menu
-		process_user_choice_file "${files_array[@]}"
+		print_files_dir_menu
+		process_user_choice_file_dir "${files_array[@]}"
 		
 		if [ $? -eq 1 ]; then
             break  
