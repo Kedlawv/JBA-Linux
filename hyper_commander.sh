@@ -33,12 +33,29 @@ process_user_choice_main() {
 			file_and_dir_operations
 			;;
 		4)
-			echo "Not implemented!"
+			find_executables
 			;;
 		*) 
 			echo "Invalid option!"
 			;;
 	esac
+}
+
+find_executables() {
+	echo "Enter an executable name:"
+	
+	read exec_name
+	
+	path=$(which "$exec_name")
+	
+	if [ -z "$path" ]; then
+		echo "The executable with that name does not exist!"
+	else
+		echo "Located in: $path"
+		echo "Enter arguments:"
+		read arguments
+		"$path" "$arguments"
+	fi
 }
 
 
